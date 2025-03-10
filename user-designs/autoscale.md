@@ -1,4 +1,4 @@
-## Autoscaling in the cloud-native ecosystem
+## Autoscaling in Kubernetes
 
 The following are the most common autoscaling mechanisms available in Kubernetes. 
 
