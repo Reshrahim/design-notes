@@ -48,35 +48,35 @@ Cons:
 
 ### Questions
 
-1. Does this example make sense? Does the platform engineer decide on the autoscaling policy or the developers? 
+- 1a. Does this example make sense? Does the platform engineer decide on the autoscaling policy or the developers? 
 
-(or)
+    (or)
 
-Do they want to configure parts of the autoscaling policy?
+- 1b. Do they want to configure parts of the autoscaling policy?
 
-|Config| Who decides and configures?|
-|---|---|
-| Autoscaling behavior | Platform engineer |
-| Infra metrics | Platform engineer |
-| Application metrics | Developer |
+    |Config| Who decides and configures?|
+    |---|---|
+    | Autoscaling behavior | Platform engineer |
+    | Infra metrics | Platform engineer | 
+    | Application metrics | Developer |
 
-2. Do you have multiple applications in the same environment that need different autoscaling behaviors? 
+- Do you have multiple applications in the same environment that need different autoscaling behaviors? 
     - If yes, can these applications have metadata that can be used to group them together? For example, web applications, batch applications, event-driven applications, etc.
 
-eg:
+    eg:
 
-```bicep
-resource environment 'Applications.Core/environments@2023-10-01-preview' = {
-  name: 'myenv'
-  properties: {
-    autoscaling: {
-        web: {
-        }
-        batch: {
+    ```bicep
+    resource environment 'Applications.Core/environments@2023-10-01-preview' = {
+    name: 'myenv'
+    properties: {
+        autoscaling: {
+            web: {
+            }
+            batch: {
+            }
         }
     }
-}
-```
+    ```
 
 ## Use Story 2 : Autoscaling by Application Metrics
 
@@ -104,7 +104,7 @@ resource rabbitmq 'Applications.Messaging/rabbitmqQueues@2023-10-01-preview' = {
 ``` 
 
 Pros:
-- Application developers can override or add additional autoscale metrics for their application.
+- Application developers can add additional autoscale metrics for their application.
 
 Cons:
 - Only select metrics that are application specific will be available for the developer 
