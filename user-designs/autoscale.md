@@ -58,6 +58,21 @@ Cons:
 2. Do you have multiple applications in the same environment that need different autoscaling behaviors? 
     - If yes, can these applications have metadata that can be used to group them together? For example, web applications, batch applications, event-driven applications, etc.
 
+eg:
+
+```bicep
+resource environment 'Applications.Core/environments@2023-10-01-preview' = {
+  name: 'myenv'
+  properties: {
+    autoscaling: {
+        web: {
+        }
+        batch: {
+        }
+    }
+}
+```
+
 ## Use Story 2 : Autoscaling by Application Metrics
 
 The application has a rabbitmq queue, and we want to scale the application based on the number of messages in the queue. In this case, the application developer would define the autoscaling metric in the application definition and the platform engineer has already configured the scaling behavior . 
@@ -89,7 +104,7 @@ Pros:
 Cons:
 - Only select metrics that are application specific will be available for the developer 
 
-Questions:
+### Questions
 
 1. Does this make sense? Do you want your developers to override the autoscaling behavior and infra metrics enforced by the platform engineer?
 
