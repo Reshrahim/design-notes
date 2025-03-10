@@ -1,8 +1,5 @@
-## Autoscaling in Kubernetes
+## Autoscaling in Kubernetes 
 
-The following are the most common autoscaling mechanisms available in Kubernetes. 
-
-**Kubernetes**
 1. **Horizontal Pod Autoscaler (HPA)** - Kubernetes native autoscaling mechanism that scales the number of pods in a deployment based on pod metrics such as CPU utilization, Memory and other custom metrics. This is the most common autoscaling mechanism used in the Kubernetes ecosystem.
 2. **Vertical Pod Autoscaler (VPA)** - Kubernetes native autoscaling mechanism that automatically adjusts the CPU and memory requests of the pods. This is the least common autoscaling mechanism used in the Kubernetes ecosystem as it requires restarting the pods to apply the new resource requests.
 3. **KEDA** - Kubernetes Event-driven Autoscaling (KEDA) is an open-source component that enables autoscaling of Kubernetes workloads based on external metrics. KEDA operates on top of the HPA and triggers scaling based on metrics from various sources, such as message queues, databases, or observability platforms.
@@ -97,7 +94,7 @@ resource rabbitmq 'Applications.Messaging/rabbitmqQueues@2023-10-01-preview' = {
 ``` 
 
 Pros:
-- Flexibility for Application developers to configure or override or add additional autoscale metrics for their application.
+- Application developers can override or add additional autoscale metrics for their application.
 
 Cons:
 - Only select metrics that are application specific will be available for the developer 
