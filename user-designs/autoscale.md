@@ -9,8 +9,6 @@ The following are the most common autoscaling mechanisms available in Kubernetes
 
 ## Autoscaling Policy Configuration
 
-Autoscaling policy consists of the following components:
-
 1. **Autoscaling behavior** 
    - Scale Up/Down - How the application should scale up or down when the load increases or decreases. 
    - Scheduled scaling - How the application should scale based on a schedule. For example, scale up during business hours and scale down during non-business hours.
