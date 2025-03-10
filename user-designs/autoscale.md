@@ -16,7 +16,7 @@
 
 ## Use Story 1 : Autoscaling by Infra Metrics such as CPU, Memory Limit.
 
-Let's consider a simple use case where we want to autoscale applications using HPA by standard resource metrics. Since these metrics are infrastructure metrics, platform engineers would want to define the autoscaling behavior and the configuration in the environment resource.
+Let's consider a simple use case where we want to autoscale applications using HPA by standard resource metrics. Platform engineers define the autoscaling behavior and the configuration in the environment resource.
 
 ```bicep
 resource environment 'Applications.Core/environments@2023-10-01-preview' = {
@@ -39,7 +39,7 @@ resource environment 'Applications.Core/environments@2023-10-01-preview' = {
 In this example, the platform engineer is configuring the autoscaling behavior for the application to scale between 1 and 10 replicas and based on some infrastructure metrics such as CPU utilization and memory limit for the pods.
 
 Pros:
-- Separates the concerns where platform engineers can configure the autoscaling policy behavior by infra metrics in the environment resource and developers are abstracted
+- Separates the concerns where platform engineers configure the autoscaling policy behavior by infra metrics in the environment resource and developers are abstracted away from the details of the autoscaling policy.
 - Platform engineers can enforce the autoscaling policy at the environment level. Dev, Test environments can have different autoscaling policies than prod environments. 
 
 Cons:
@@ -48,7 +48,17 @@ Cons:
 
 ### Questions
 
-1. Does this example make sense ? Does the platform engineer decide only on the autoscaling behavior or on the infra metrics as well? Do developers have a say?
+1. Does this example make sense? Does the platform engineer decide on the autoscaling policy or the developers? 
+
+(or)
+
+Do they want to configure parts of the autoscaling policy?
+
+|Config| Who decides and configures?|
+|---|---|
+| Autoscaling behavior | Platform engineer |
+| Infra metrics | Platform engineer |
+| Application metrics | Developer |
 
 2. Do you have multiple applications in the same environment that need different autoscaling behaviors? 
     - If yes, can these applications have metadata that can be used to group them together? For example, web applications, batch applications, event-driven applications, etc.
@@ -101,6 +111,6 @@ Cons:
 
 ### Questions
 
-1. Does this make sense? Do you want your developers to override the autoscaling behavior and infra metrics enforced by the platform engineer?
+1. Does this make sense? Do you want your developers to override the entire autoscaling policy or just add additional metrics?
 
 1. Are there other personas who would be interested in configuring the autoscaling policy for their applications? For example, operations engineers, SREs, etc.
