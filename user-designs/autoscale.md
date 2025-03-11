@@ -1,26 +1,145 @@
 ## Autoscaling in Kubernetes 
 
-1. **Horizontal Pod Autoscaler (HPA)** - Kubernetes native autoscaling mechanism that scales the number of pods in a deployment based on pod metrics such as CPU utilization, Memory and other custom metrics. This is the most common autoscaling mechanism used in the Kubernetes ecosystem.
-2. **Vertical Pod Autoscaler (VPA)** - Kubernetes native autoscaling mechanism that automatically adjusts the CPU and memory requests of the pods. This is the least common autoscaling mechanism used in the Kubernetes ecosystem as it requires restarting the pods to apply the new resource requests.
-3. **KEDA** - Kubernetes Event-driven Autoscaling (KEDA) is an open-source component that enables autoscaling of Kubernetes workloads based on external metrics. KEDA operates on top of the HPA and triggers scaling based on metrics from various sources, such as message queues, databases, or observability platforms.
+## Questions
 
-## Autoscaling Policy Configuration
+**Autoscaling Metrics**
 
-1. **Autoscaling behavior** 
-   - Scale Up/Down - How the application should scale up or down when the load increases or decreases. 
-   - Scheduled scaling - How the application should scale based on a schedule. For example, scale up during business hours and scale down during non-business hours.
+1. Are you using any metrics other than those built into Kubernetes like CPU and memory?
 
-2. **Autoscaling metrics**
-    - Infrastructure metrics - These are metrics that are related to the infrastructure on which the application is running. Examples include CPU utilization, Memory utilization, Disk I/O, Network I/O, etc.
-    - Application metrics - These are metrics that are related to the application itself. Examples include the number of messages in a queue, the number of events triggered by an application, etc.
+1. How often are you autoscaling based on custom application metrics? Application metrics would be something like the number of messages in a rabbitmq queue, the number of events triggered by an application, etc.
 
-## Use Story 1 : Autoscaling by Infra Metrics such as CPU, Memory Limit.
+1. Are you using KEDA? 
 
-Let's consider a simple use case where we want to autoscale applications using HPA by standard resource metrics. Platform engineers define the autoscaling behavior and the configuration in the environment resource.
+**Autoscaling Behavior**
 
-```bicep
-resource environment 'Applications.Core/environments@2023-10-01-preview' = {
-  name: 'myenv'
+1. What are the autoscaling behaviors you are using today? 
+    - Scale up/down/zero?
+    - Scheduled scaling?
+    - Any other?
+
+**Personas and Responsibilities**
+
+1. Who configures the HPA in your Kubernetes environment today?
+
+1. What are the personas involved in autoscaling? Our assumptions are:
+	- Developers specify which container gets autoscaled based on which metric and at the specified threshold
+	- Platform engineers configure the environment with min and max replicas
+	- SRE/operations engineers tune autoscaling by overriding tuning parameters such as thresholds
+
+    Eg: env.bicep
+
+    ```bicep
+    resource environment 'Applications.Core/environments@2023-10-01-preview' = {
+        name: 'myenv'
+        properties: {
+            compute: {
+                kind: 'kubernetes'
+                namespace: 'default' 
+                // Platform engineer specifies the autoscaling behavior
+                autoscaling: {
+                    minReplicas: 1
+                    maxReplicas: 10
+                }
+            }
+        }
+    }    
+    ```
+    app.bicep
+
+    ```bicep
+    resource container 'Applications.Containers@2023-10-01-preview' = {
+        name: 'myapp'
+        properties: {
+            image: 'myregistry.azurecr.io/myapp:latest'
+            // Developer specifies the autoscaling metrics
+            autoscaling: {
+                metric: 'cpu'
+                threshold: 50
+            }
+        }
+    }
+
+6. Should the metric threshold be specified by the developer or the SRE/operations engineer? 
+
+7. Should the developer be able to override autoscaling behavior and limits?
+
+8. Is the ownership the same across all environments? For example, do you need the ability to delegate autoscaling behavior configuration to developers in a test environment?
+
+    Eg: env.bicep
+
+        ```bicep
+        //Created in the non-prod-environment resource group
+        //Access is limited to platform engineers
+        //DO WE NEED DEVELOPERS HERE IN RBAC?
+        resource environment 'Applications.Core/environments@2023-10-01-preview' = {
+            name: 'myenv'
+            properties: {
+                compute: {
+                    kind: 'kubernetes'
+                    namespace: 'default' 
+                    autoscaling: {
+                        minReplicas: 1 
+                        maxReplicas: 5
+                    }
+                }
+            }
+        }    
+        ```
+
+9. Should a container opt-in to autoscaling or should it rely on the environment configuration?
+
+    Eg: env.bicep
+
+    ```bicep
+    resource environment 'Applications.Core/environments@2023-10-01-preview' = {
+        name: 'myenv'
+        properties: {
+            compute: {
+                kind: 'kubernetes'
+                namespace: 'default' 
+                autoscaling: {
+                    minReplicas: 1
+                    maxReplicas: 10
+                    // Default autoscaling thresholds for all applications
+                    metric: [
+                        {
+                            name: 'cpu'
+                            threshold: 50
+                        }
+                        {
+                            name: 'memory'
+                            threshold: 50
+                        }
+                    ]
+                }
+            }
+        }
+    }    
+    ```
+    app.bicep
+
+    ```bicep
+    resource container 'Applications.Containers@2023-10-01-preview' = {
+        name: 'myapp'
+        properties: {
+            image: 'myregistry.azurecr.io/myapp:latest'
+            // Should the developer opt-in to autoscaling?
+            autoscaling : on // opt-in or opt-out
+        }
+    }
+
+10. How granular should autoscaling rules be? 
+    - Only application-specific? 
+    - All applications are treated the same in an environment?
+    - Default for all applications with the ability to override? 
+
+## Scenarios
+
+**Environment Configuration**
+
+```bicep 
+ resource environment 'Applications.Core/environments@2023-10-01-preview' = {
+  name: 'test'
   properties: {
     compute: {
       kind: 'kubernetes'
@@ -29,88 +148,77 @@ resource environment 'Applications.Core/environments@2023-10-01-preview' = {
       }
     autoscaling: {
         minReplicas: 1
-        maxReplicas: 10
-        cpuUtilization: 50
-        memoryLimit: 50
+        maxReplicas: 5
       }
     }
 }
 ```
-In this example, the platform engineer is configuring the autoscaling behavior for the application to scale between 1 and 10 replicas and based on some infrastructure metrics such as CPU utilization and memory limit for the pods.
 
-Pros:
-- Separates the concerns where platform engineers configure the autoscaling policy behavior by infra metrics in the environment resource and developers are abstracted away from the details of the autoscaling policy.
-- Platform engineers can enforce the autoscaling policy at the environment level. Dev, Test environments can have different autoscaling policies than prod environments. 
 
-Cons:
-- All applications in the environment will have the same autoscaling configuration.
-- Developer cannot configure the autoscaling behavior for their application.
-
-### Questions
-
-- 1a. Does this example make sense? Does the platform engineer decide on the autoscaling policy or the developers? 
-
-    (or)
-
-- 1b. Do they want to configure parts of the autoscaling policy?
-
-    |Config| Who decides and configures?|
-    |---|---|
-    | Autoscaling behavior | Platform engineer |
-    | Infra metrics | Platform engineer | 
-    | Application metrics | Developer |
-
-- Do you have multiple applications in the same environment that need different autoscaling behaviors? 
-    - If yes, can these applications have metadata that can be used to group them together? For example, web applications, batch applications, event-driven applications, etc.
-
-    eg:
+1. Scenario 0 : No Autoscaling 
 
     ```bicep
-    resource environment 'Applications.Core/environments@2023-10-01-preview' = {
-    name: 'myenv'
-    properties: {
-        autoscaling: {
-            web: {
-            }
-            batch: {
-            }
+    resource container 'Applications.Containers@2023-10-01-preview' = {
+        name: 'myapp'
+        properties: {
+            image: 'myregistry.azurecr.io/myapp:latest'
         }
     }
     ```
 
-## Use Story 2 : Autoscaling by Application Metrics
+1. Scenario 1 – Scaling based on system resource metrics (cAdvisor is already collecting and sending to metrics server)
 
-The application has a rabbitmq queue, and we want to scale the application based on the number of messages in the queue. In this case, the application developer would define the autoscaling metric in the application definition and the platform engineer has already configured the scaling behavior . 
-
-```bicep
-resource container 'Applications.Containers@2023-10-01-preview' = {
-  name: 'myapp'
-  properties: {
-    image: 'myregistry.azurecr.io/myapp:latest'
-    autoscaling: {
-      queue: rabbitmq.QueueName
-      queueLength: 10
+    ```bicep
+    resource container 'Applications.Containers@2023-10-01-preview' = {
+        name: 'myapp'
+        properties: {
+            image: 'myregistry.azurecr.io/myapp:latest'
+            autoscaling: {
+                metric: 'cpu'
+                threshold: 50
+            }
+        }
     }
-  }
-}
 
-resource rabbitmq 'Applications.Messaging/rabbitmqQueues@2023-10-01-preview' = {
-  name: 'rabbitmq'
-  properties: {
-    queueName: 'myqueue'
-    ....
-  }
-}
-``` 
+1. Scenario 2 - Autoscaling based on a metric from a Radius-managed resource (a metric from a different resource other than the container which is being autoscaled)
+    ```bicep
+    resource container 'Applications.Containers@2023-10-01-preview' = {
+        name: 'myapp'
+        properties: {
+            image: 'myregistry.azurecr.io/myapp:latest'
+            autoscaling: {
+            metric: myQueue.queueLength
+            threshold: 10
+            }
+        }
+    }
 
-Pros:
-- Application developers can add additional autoscale metrics for their application.
+    resource rabbitmq 'MyCompany.App/rabbitmq' = {
+        name: 'myQueue'
+    }
+   ``` 
 
-Cons:
-- Only select metrics that are application specific will be available for the developer 
+1. Scenario 3 – Scaling based on application metric exposed by container (a custom metric exposed by the application for Prometheus to pickup)
+    ```bicep
+    resource container 'Applications.Containers@2023-10-01-preview' = {
+        name: 'myapp'
+        properties: {
+            image: 'myregistry.azurecr.io/myapp:latest'
+            autoscaling: {
+                metric: concurrent-users
+                threshold: 50
+            }
+            metrics: {
+                name: concurrent-users
+                endpoint: /metricsz
+            }
+        }
+     }
+    ```
 
-### Questions
+1. Scenario 4 - SRE override
+    ???
+    Override threshold from 50 to 40 for example
+    No change in metric configuration
 
-1. Does this make sense? Do you want your developers to override the entire autoscaling policy or just add additional metrics?
-
-1. Are there other personas who would be interested in configuring the autoscaling policy for their applications? For example, operations engineers, SREs, etc.
+    Not p0
