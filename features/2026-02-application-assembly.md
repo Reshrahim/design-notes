@@ -4,7 +4,7 @@
 
 ## Topic Summary
 
-Radius today requires significant upfront setup before developers can deploy their applications. Platform engineers must manually define Resource Types, register Recipes, and configure Environments. Developers must then learn the Radius resource model and re-author their application definitions in Bicep or YAML before they can realize any value from the platform. This setup cost creates a steep adoption barrier that discourages both new users and organizations with large existing application portfolios.
+Radius today requires significant upfront setup before developers can deploy their applications. Platform engineers must manually define Resource Types, register Recipes, and configure Environments. Developers must then learn the Radius resource model and re-author their application definitions in Bicep before they can realize any value from the platform. This setup cost creates a steep adoption barrier that discourages both new users and organizations with large existing application portfolios.
 
 Application Assembly is a new layer in Radius that introduces an application-intent layer, translating existing codebases into platform-compliant deployments. Application Assembly automatically discovers application components, infers the platform requirements and standards, and generates a deployable Radius application definition.
 
