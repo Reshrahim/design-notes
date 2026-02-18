@@ -23,7 +23,7 @@ Application Assembly is a new layer in Radius that introduces an application-int
 ### Goals
 
 1. Introduce an application-intent layer that allows developers to deploy existing and new applications to Radius without needing to understand internal platform constructs such as Resource Types or Recipes.
-2. Reduce onboarding friction for users and accelerate time to value by enabling a “point-and-deploy” experience that automatically discovers application components, infers platform requirements, and generates deployable Radius application definitions.
+2. Reduce onboarding friction for users and accelerate time to value by enabling an experience that automatically discovers application components, infers platform requirements, and generates deployable Radius application definitions.
 3. Provide a deterministic and transparent assembly experience that surfaces inferred topology, authentication models, and platform mappings for review before deployment.
 
 ### User Journey
@@ -185,7 +185,7 @@ platform:
 
 ---
 
-### Command 2: `rad app model`
+### Model the application via  `rad app model`
 
 Reads `radius/app.yaml`, matches each component to a Radius resource type and recipe, and generates deployable artifacts into the `radius/` folder.
 
