@@ -97,11 +97,6 @@ Once done, Radius renders an architecture diagram and evidence tables:
   Confirm detected topology? [Y/n]: Y
   ✔ Application topology confirmed.
  
- Application secrets (not tied to a dependency):
-   JWT_SIGNING_KEY  (./api/.env:6, ./api/internal/auth/…)
-   → source: [secret-store / env-var / skip]: secret-store    name [jwt-key]: jwt-key
-
- ✔ Secrets configured.
 ```
 
 **Step 2 — Platform constitution**
@@ -174,10 +169,6 @@ services:
     runtime: go
     dockerfile: ./api/Dockerfile
     port: 8080
-    secrets:
-      - envVar: JWT_SIGNING_KEY
-        name: jwt-key
-        source: secret-store
     dependencies:
       - target: postgresql
         auth: connection-string
@@ -254,7 +245,7 @@ $ rad app model
  Recipe pack: 4 modules (radius/recipe-pack.yaml)
 
  Next steps:
-   rad app plan                  Review the generated plan
+   rad app plan           Review the generated plan
    rad deploy app.bicep   Deploy when ready
 ```
 
