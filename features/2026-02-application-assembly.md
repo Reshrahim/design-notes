@@ -65,7 +65,7 @@ In Copilot CLI, a user could add Radius skills using the below command:
 *Other options for distribution include*:
 
 | Method | Description|
-|--------|------|------
+|--------|------------|
 | `skills.sh` script | A simple scripts that copies the necessary skills from the centralized Radius repository to the user's `.github/skills` folder |
 | `rad skills` | Integrated experience within the Radius CLI |
 | GitHub's recommended way | This could be an option that GitHub provides in the future for sharing skills across users and organizations. |
