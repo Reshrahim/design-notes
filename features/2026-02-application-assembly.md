@@ -28,7 +28,7 @@ Application Assembly is a new layer in Radius that introduces an application-int
 
 ### Scenario 1 : As an enterprise application developer, I want to create a new application using copilot that match the enterprise platform standards
 
-Context: A developer is creating a new application using Copilot CLI. They want to ensure that the application is compliant with the enterprise platform standards defined by the platform engineering team, such as using approved Terraform modules, following naming conventions, and adhering to authentication preferences.
+Context: A developer is creating a new application using Copilot CLI. They want to ensure that the application is compliant with the enterprise platform standards defined by the platform engineering team, such as using approved Terraform modules, following naming conventions, and adhering to cost practices.
 
 ### Learnings and Areas under Exploration
 
