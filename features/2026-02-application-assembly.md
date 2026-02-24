@@ -62,11 +62,12 @@ In Copilot CLI, a user could add Radius skills using the below command:
 /skills add radius-project/radius-skills
 ```
 
-Other options for distribution include:
+*Other options for distribution include*:
+
 | Method | Description|
 |--------|------|------
-| `skills.sh` script | A simple scripts that copies the necessary skills from the centralized Radius repository to the user's `.github/skills` folder.
-| `rad cli` | Integrated experience within the Radius CLI |
+| `skills.sh` script | A simple scripts that copies the necessary skills from the centralized Radius repository to the user's `.github/skills` folder |
+| `rad skills` | Integrated experience within the Radius CLI |
 | GitHub's recommended way | This could be an option that GitHub provides in the future for sharing skills across users and organizations. |
 
 #### 4. `app.bicep` as State file (Hidden from User)
