@@ -147,7 +147,7 @@ Maria installs Radius skills in her repository based on the instructions provide
 #### Building the application source code with Copilot
 
 >[!IMPORTANT]
-> Copilot builds the application source code based on Maria's input. There is no Radius skills involvement until this step and is left to the user to guide copilot in building the app as they normally would.
+> Copilot builds the application source code based on Maria's input. There is no Radius skills involvement in this step and is left to the user to guide copilot in building the app as they normally would.
 
 Now Maria is ready to build the customer feedback service application.
 
