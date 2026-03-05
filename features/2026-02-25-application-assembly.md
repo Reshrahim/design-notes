@@ -4,7 +4,7 @@
 
 ## Topic Summary
 
-Enterprise developers today face a fundamental disconnect between writing application code and deploying it in compliance with organizational platform standards. Platform engineers spend significant time defining infrastructure policies, approved modules, and deployment conventions, but developers have no automated way to discover or apply these standards. The result is a slow, manual, and error-prone process where compliance is enforced reactively instead of being built in from the start.
+Enterprise developers today face a fundamental disconnect between writing application code via AI coding assistants and deploying it in compliance with organizational platform standards. Platform engineers spend significant time defining infrastructure policies, approved modules, and deployment conventions, but developers have no easy way to discover or apply these standards. The result is a slow, manual, and error-prone process where compliance is enforced reactively instead of being built in from the start.
 
 Application Assembly is a new layer in Radius that automatically discovers application components from existing code artifacts, infers platform requirements based on organizational standards, and generates a deployable application definition that is compliant by default.
 
@@ -26,7 +26,7 @@ Application Assembly is a new layer in Radius that automatically discovers appli
 
 ### Non-goals (out of scope)
 
-
+1. Radius does not guide how the developer builds the application source code or how they use AI coding assistants to scaffold and iterate on their application.
 
 ## User profile and challenges
 
@@ -40,7 +40,7 @@ Application developers in enterprises who are building new applications and want
 
 - **Established developers**: Experienced engineers bootstrapping new services who want to move fast without manually researching which infrastructure modules are approved, how to wire up dependencies and how to handle secrets. They want to focus on their application code and let the platform handle the rest.
 
-- **New developers**: Engineers from adjacent disciplines (data analysts, front-end developers, ML engineers) or new hires who need to stand up compliant applications but lack familiarity with the organization's infrastructure tooling and policies.
+- **New developers**: Engineers from adjacent disciplines (data analysts, scientists, designers) or new hires who need to stand up compliant applications but lack familiarity with the organization's infrastructure tooling and policies.
 
 Both subgroups use AI coding assistants or other tools as part of their daily workflow and expect tooling to meet them where they are rather than forcing them to learn new languages or paradigms upfront.
 
@@ -90,259 +90,561 @@ A platform engineer wants to codify the organization's infrastructure standards,
 
 A developer has an existing application that was built in a non-compliant manner. They want to update their application to be compliant with the latest standards without having to manually refactor their codebase.
 
-### User Journey
+### End-to-End User Journey
 
-#### End-to-End Flow Summary
+**Scenario** : Maria is a developer at MyCompany.Inc. She is an experienced developer but new to the company's platform standards. She wants to build a new application that builds customer feedback service and deploy it using Copilot CLI while ensuring compliance with the platform standards.
 
-```
-Platform Engineer                    Developer                    Platform 
-      │                                  │                              │
-      ▼                                  │                              │
- ┌──────────────┐                        │                              │
- │  platform-   │                        │                              │
- │ constitution │                        │                              │
- │    skill     │                        │                              │
- └──────┬───────┘                        │                              │
-        │                                │                              │
-        ▼                                │                              │
- Constitution.md                         │                              │
-        │                                │                              │
-        └────────────────────────────────▶                              │
-                                         │                              │
-                                    ┌────┴─────┐                        │
-                                    │  app-    │                        │
-                                    │ modeling │                        │
-                                    │  skill   │                        │
-                                    └────┬─────┘                        │
-                                         │                              │
-                                         ▼                              │
-                                    app.bicep                           │
-                                         │                              │
-                                         └──────────────────────────────▶
-                                                                        │
-                                                                   ┌────┴──────┐
-                                                                   │   app-    │
-                                                                   │ verify   │
-                                                                   │  skill   │
-                                                                   └────┬──────┘
-                                                                        │
-                                                                        ▼
-                                                                   Audit Report
-```
-
-#### Prerequisites
-
-- Copilot CLI installed
-- Skills added to `.github/skills/` or configured in Copilot
-
-#### Phase 1: Platform Constitution (Scenario 2)
-
-> **Persona:** Platform Engineer or Developer  
-> **Goal:** Define organizational standards in one place that can be automatically applied during application assembly
-
-A platform engineer typically drives this step, but a developer can also trigger it for example, when no Platform Constitution exists yet and the developer wants to bootstrap one to get started.
-
-##### Prompt
-
-**Developer prompt (no constitution exists yet):**
+**Pre-requisites** - Maria has Copilot CLI installed.
 
 ```
-Build me a simple Node.js todolist app
+╭──────────────────────────────────────────────────────────────╮
+│                                                              │
+│  ◻◻  GitHub Copilot v0.0.422-0                               │
+│  ▮▮▮ Describe a task to get started.                         │
+│                                                              │
+│  Tip: /instructions View and toggle custom instruction files │
+│  Copilot uses AI, so always check for mistakes.              │
+│                                                              │
+╰──────────────────────────────────────────────────────────────╯
 ```
 
-When no Platform Constitution is found, the system prompts the developer to generate one before proceeding with application assembly.
-
-**Platform engineer prompt (direct):**
-
 ```
-Generate a Platform Engineering Constitution for my organization
+> mkdir customer-feedback-service
+> cd customer-feedback-service
 ```
 
-##### Expected Behavior
+#### Install Radius skills
 
-Copilot asks questions one at a time, organized by category:
-
-**Organization**
-1. "What is your organization name?" → `MyCompany Inc.`
-
-**Cloud & Compute**
-2. "What cloud providers does your organization use?" → `Azure`
-3. "What compute platforms do you target?" → `Kubernetes (AKS)`
-4. "What cloud regions are approved?" → `East US, West US 2`
-
-**Infrastructure as Code**
-5. "What IaC tooling does your platform team use?" → `Bicep`
-6. "List approved IaC modules with registry path" → `mycompany.azurecr.io`
-7. "Do you have existing infrastructure policies?" → `No`
-
-**Compliance & Governance**
-8. "Any compliance requirements?" → `SOC 2`
-9. "Naming conventions?" → `{org}-{env}-{service}-{resource}`
-10. "Required tags?" → `environment, team, cost-center`
-
-**Networking & Security**
-11. "Network architecture constraints?" → `Hub-spoke with private endpoints`
-12. "How are secrets managed?" → `Azure Key Vault`
-
-##### Expected Output
-
-`Platform-Engineering-Constitution.md` created at repo root with sections:
-1. Organization Overview
-2. Cloud Providers (Azure)
-3. Compute Platform (AKS)
-4. Infrastructure Policies
-5. Infrastructure as Code (Bicep/Terraform, module catalog)
-6. Deployment Standards
-7. Network Architecture
-8. Security & Secrets
-9. Appendix
-
-#### Phase 2: Application Modeling (Scenario 1)
-
-> **Persona:** Developer  
-> **Goal:** Create a new application that is compliant with platform standards
-
-##### Prompt
+Maria installs Radius skills in her repository based on the instructions provided by the platform team so that she can build compliant applications from day one.
 
 ```
-Build me a todo app and deploy it
+❯ npx add skills https://github.com/radius-project/skills.git
+
+● Add skills from radius-project/skills repo
+  $ cd /customer-feedback-service && npx skills add https://github.com/anthropics/skills.git
+  └ 10 lines...
+
+● The repo cloned successfully and found 3 skills. It's waiting for you to select which skills to install. Which skills would you like? You can choose from categories like:
+
+   - Platform constitution – Organize the platform standards and policies that govern how applications should be built and deployed within your organization.
+   - Application Modelling – Automatically scaffold a compliant application definition based on the developer's intent and platform constitution.
+   - Application Verification – Check the compliance of an application definition against the platform constitution and certify the application for deploymnent
+
+  Would you like me to select all of them, or specific ones?
+
+❯ all
+
+● Install all skills with --yes flag
+  $ cd /customer-feedback-service && npx skills add https://github.com/anthropics/skills.git --yes
+  └ 10 lines...
+
+● All 3 skills installed successfully to .github/skills/ in your project. They're available across multiple agents (Codex, GitHub Copilot, Claude Code, Cursor, and more). You can use /skills list or /skills reload in the CLI to start using them.
 ```
 
-The developer describes what the app should do, not how it should be built. The system scaffolds the application code, infers infrastructure dependencies (e.g., a database for persistence, a cache for performance), and automatically invokes the application-modeling skill to generate a compliant, deployable application.
+>[!NOTE]
+> **Open-question**: Can we combine the skills and MCP server installation as a package that developers can install with a single command, for example `npx add radius-skills` which would install the necessary skills and also set up the MCP server.
 
-Copilot generates a Node.js app with inferred dependencies:
+#### Building the application source code with Copilot
 
-```
-sample-app/
-├── package.json        # has "pg" and "ioredis" dependencies
-├── Dockerfile          # FROM node:20-alpine, EXPOSE 3000
-├── docker-compose.yml  # services: app, db (postgres:15), cache (redis:7)
-└── src/
-    └── index.js        # connects to postgres and redis
-```
+>[!IMPORTANT]
+> Copilot builds the application source code based on Maria's input. There is no Radius skills involvement until this step and is left to the user to guide copilot in building the app as they normally would.
 
-##### Expected Behavior
-
-1. **Reads constitution** — finds `Platform-Engineering-Constitution.md`
-2. **Scans files** — detects `package.json`, `Dockerfile`, `docker-compose.yml`
-3. **Detects dependencies:**
-   - PostgreSQL (`pg` in package.json)
-   - Redis (`ioredis` in package.json)
-   - Node.js container (`Dockerfile` + docker-compose `app` service)
-4. **Maps to Radius types** (from resource-types-contrib):
-   - `Radius.Data/postgreSqlDatabases`
-   - `Radius.Data/redisCaches`
-   - `Radius.Compute/containers`
-5. **Selects Recipes from module catalog:**
-   - PostgreSQL → `postgresql-ha` (approved, `mycompany.azurecr.io/infra/postgresql:v1.2.0`)
-   - Redis → `redis-cluster` (approved, `mycompany.azurecr.io/infra/redis:v2.0.0`)
-6. **Complies with standards** — ensures cloud provider, compute platform, naming conventions, and tags match constitution
-7. **Verifies via MCP** — checks if recipes are registered in environment
-8. **Generates Bicep** — `app.bicep` with explainability comments
-
-#### Phase 3: Application Verification (Scenario 2)
-
-> **Persona:** Developer 
-> **Goal:** Verify the generated application meets organization standards
-
-##### Prompt
+Now Maria is ready to build the customer feedback service application.
 
 ```
-Verify and audit this application meets our platform standards
+❯ build a customer feedback service
+
+◐ This is a fairly empty repo with just a Radius MCP server. The user wants to build a customer feedback service. I need to clarify what they want - tech stack, features, etc. Also, there's no Platform Engineering Constitution, which my instructions say I should generate first for infrastructure-related tasks.
+
+  Let me ask the user some key questions about what they want.
+
+● I see this is a repo with a Radius MCP server setup. Before building the customer feedback service, I have a few questions to scope it properly.
+
+○ Asking user:  What tech stack would you like for the customer feedback ...
+
+╭──────────────────────────────────────────────────────────╮
+│ What tech stack would you like for the customer          │
+│ feedback service?                                        │
+│                                                          │
+│ ❯ 1. Node.js/Express with TypeScript (Recommended)       │
+│   2. Python/FastAPI                                      │
+│   3. Go                                                  │
+│   4. Other (type your answer)                            │
+│                                                          │
+│ ↑↓ to select · Enter to confirm · Esc to cancel          │
+╰──────────────────────────────────────────────────────────╯
+● Asked user: What tech stack would you like for the customer feedback ...
+  └ User selected: Python/FastAPI
+
+● Asked user: What features do you need in the feedback service?
+  └ User selected: Full CRUD: submit, list, get, update, delete feedback with rat...
+
+● Asked user: What database would you like to use for storing feedback?
+  └ User selected: PostgreSQL
+
+The customer feedback service is built and validated. Here's the summary:
+
+feedback-service/ — Python/FastAPI + PostgreSQL with full CRUD:
+
+┌───────────────────────────┬─────────────────────────────────────────────────────┐
+│ Endpoint                  │ Description                                         │
+├───────────────────────────┼─────────────────────────────────────────────────────┤
+│ POST /api/v1/feedback/    │ Submit feedback (name, email, category, rating 1-5) │
+│ GET /api/v1/feedback/     │ List with pagination + filter by category/rating    │
+│ GET /api/v1/feedback/{id} │ Get by ID                                           │
+│ PUT /api/v1/feedback/{id} │ Partial update                                      │
+│ DELETE /api/v1/feedback/  │ Delete                                              │
+└───────────────────────────┴─────────────────────────────────────────────────────┘
 ```
 
-The system automatically invokes the application-verification skill based on the user's intent.
+#### Building the application definition and deploying the application
 
-##### Expected Behavior
-
-1. **Reads constitution** — loads standards
-2. **Reads generated Bicep** — parses `app.bicep`
-3. **Extracts approved module catalog** from constitution
-4. **Checks each resource** against constitution:
-   - Cloud provider alignment
-   - Approved IaC modules
-   - Naming conventions
-   - Tags/labels
-5. **Verifies via MCP** — recipe registration, resource type registration
-6. **Generates audit report**
-
-##### Expected Output
+**Platform Constitution Generation**
 
 ```
-> Verify and audit this application meets our platform standards
 
-✔ Loading constitution... done
-✔ Parsing app.bicep... done
-✖ Checking resources against standards... 1 critical finding
+> build and deploy the application
 
-Application Audit Report
-========================
+◐ No Platform-Engineering-Constitution.md found.
+  Need to generate one before proceeding with deployment.
 
-Summary:  1 critical · 0 warnings · 2 info
+○ Asking user: What do you mean by "build and deploy"?
 
-Findings:
+╭──────────────────────────────────────────────────────────╮
+│ The repo has a feedback-service (Python/FastAPI +        │
+│ PostgreSQL) and an mcp-server (Node.js). What do you     │
+│ mean by "build and deploy"?                              │
+│                                                          │
+│ ❯ 1. Run locally with Docker Compose (Recommended)       │
+│   2. Deploy to cloud (requires Platform Constitution)    │
+│   3. Just build the Docker images without running        │
+│   4. Other (type your answer)                            │
+│                                                          │
+│ ↑↓ to select · Enter to confirm · Esc to cancel          │
+╰──────────────────────────────────────────────────────────╯
+```
 
-  ✖ [C1] Unapproved IaC used for PostgreSQL
-      File: resource-types/contrib/postgreSQL.bicep
-      Expected: mycompany.azurecr.io (Constitution Section 5)
+> [!NOTE]
+> **Open Question**: Copilot generated source code has docker-compose.yml. How much of a support is required for local dev and testing for enterprise developers? Should Radius skills jump to generating the `app.bicep` and let users run it in the cloud instead of running locally with docker-compose?
 
-  ℹ [I1] All other recipes from approved module catalog
-  ℹ [I2] Explainability check passed
+```
+◐ No Platform-Engineering-Constitution.md found.
+  Invoking platform-constitution skill...
 
-? Do you want to proceed with deployment? (Y/N)
+● skill(platform-constitution)
+
+○ Asking user: Do you have existing infrastructure docs?
+╭──────────────────────────────────────────────────────────╮
+│ Do you have existing documentation about your            │
+│ infrastructure practices? (e.g., Confluence, Notion,     │
+│ ADRs, runbooks, policy docs)                             │
+│                                                          │
+│   1. No — let's start from scratch                       │
+│ > 2. Other (type your answer)                            │
+│                                                          │
+│ ↑↓ to select · Enter to confirm · Esc to cancel          │
+╰──────────────────────────────────────────────────────────╯
+● Asked user: Do you have existing infrastructure docs?
+  └ User entered: https://mycompany.inc/wiki/platform-guide
+
+◐ Fetching https://mycompany.inc/wiki/platform-guide...
+  └ Retrieved 12 pages (platform guide, ADRs, runbooks)
+
+◐ Analyzing documentation for platform standards...
+
+  Found the following from your docs:
+    ✔ Cloud provider: Azure
+    ✔ Compute platform: Kubernetes (AKS)
+    ✔ IaC tool: Terraform
+    ✔ Registry: mycompany.azurecr.io
+    ✖ Naming conventions: not found
+    ✖ Compliance / tagging requirements: not found
+
+  I was able to extract some standards from your docs,
+  but a few areas are missing. Let me ask you about those.
+
+○ Asking user: Naming conventions
+
+╭──────────────────────────────────────────────────────────╮
+│ What naming convention does your org follow for          │
+│ cloud resources?                                         │
+│                                                          │
+│ ❯ 1. {company}-{env}-{app}-{resource}                    │
+│   2. {team}-{app}-{env}-{resource}                       │
+│   3. We don't have a convention yet                      │
+│   4. Other (type your answer)                            │
+│                                                          │
+│ ↑↓ to select · Enter to confirm · Esc to cancel          │
+╰──────────────────────────────────────────────────────────╯
+● Asked user: Naming conventions
+  └ User selected: {company}-{env}-{app}-{resource}
+● Asked user: What is the company prefix?
+  └ User entered: mycompany
+
+○ Asking user: Required tags
+
+╭──────────────────────────────────────────────────────────╮
+│ Which tags are required on all cloud resources?          │
+│ (select all that apply)                                  │
+│                                                          │
+│ ❯ [x] environment                                        │
+│   [x] team                                               │
+│   [x] cost-center                                        │
+│   [ ] data-classification                                │
+│   [ ] Other (type your answer)                           │
+│                                                          │
+│ ↑↓ to select · Space to toggle · Enter to confirm        │
+╰──────────────────────────────────────────────────────────╯
+● Asked user: Required tags
+  └ User selected: environment, team, cost-center
+
+◐ Generating Platform-Engineering-Constitution.md...
+
+  Created: Platform-Engineering-Constitution.md
+
+  ┌─────────────────────────────────────────────────────────┐
+  │ Section                       │ Source                  │
+  ├─────────────────────────────────────────────────────────┤
+  │ 1. Organization Overview      │ wiki (extracted)        │
+  │ 2. Cloud Providers: Azure     │ wiki (extracted)        │
+  │ 3. Compute: Kubernetes (AKS)  │ wiki (extracted)        │
+  │ 4. IaC Tool: Terraform        │ wiki (extracted)        │
+  │ 5. Module Catalog (14 modules)│ registry (fetched)      │
+  │ 6. Naming: mycompany-{env}-…  │ questionnaire           │
+  │ 7. Tags: env, team, cost-ctr  │ questionnaire           │
+  └─────────────────────────────────────────────────────────┘
+
+  ℹ Sources: 4 sections from docs, 1 from registry,
+    2 from questionnaire
+
+? Review the constitution before proceeding? (Y/n): Y
+
+◐ Opening Platform-Engineering-Constitution.md in editor...
+
+? Does the constitution look correct? (Y/n): Y
+
+✔ Platform Engineering Constitution saved
+```
+
+An example of the generated `Platform-Engineering-Constitution.md` is included in the Appendix section below.
+
+The same flow can be invoked by platform engineers to generate the constitution as well. The key difference is that platform engineers would likely have more complete documentation and clearer standards which would make the generation more deterministic and require less back and forth with the user.
+
+>[!NOTE]
+> **Open Questions** 
+> 1. Can a tool be added to the MCP server to authenticate to private docs which allows Copilot to crawl and fetch the platform data?
+> 2. What are the authentication mechanisms we can support for private docs? (e.g., OAuth, PAT, SSO)
+> 3. If we cannot authenticate and fetch the docs, we will need to fall back to asking users questions to fill in the gaps in the constitution. How can we keep this experience simple and not overwhelming for users?
+> 4. How would a Platform engineer distribute this constitution to the teams?
+> 5. How do we keep the constitution up to date as organizational standards evolve? 
+
+**Application Architecture**
+
+```
+● skill(app-modeling)
+
+◐ Loading Platform-Engineering-Constitution.md...
+  └ Constitution loaded (7 sections)
+
+◐ Scanning feedback-service/ for infrastructure
+  dependencies...
+
+  Project structure:
+    feedback-service/
+    ├── requirements.txt    # fastapi, uvicorn, sqlalchemy,
+    │                       # psycopg2-binary, alembic
+    ├── Dockerfile          # FROM python:3.12-slim, EXPOSE 8000
+    ├── docker-compose.yml  # services: app, db (postgres:16)
+    └── src/
+        ├── main.py         # FastAPI app with CRUD routes
+        ├── models.py       # SQLAlchemy models (Feedback)
+        ├── database.py     # PostgreSQL connection via
+        │                   # DATABASE_URL env var
+        └── schemas.py      # Pydantic request/response models
+
+◐ Detecting infrastructure dependencies...
+
+  Found 2 dependencies:
+
+  ┌───────────────┬────────────────────────┬──────────────────┐
+  │ Dependency    │ Source                 │ How detected     │
+  ├───────────────┼────────────────────────┼──────────────────┤
+  │ PostgreSQL    │ psycopg2-binary in     │ requirements.txt │
+  │               │ requirements.txt,      │ + database.py    │
+  │               │ DATABASE_URL in        │ connection string│
+  │               │ database.py            │                  │
+  │ Python App    │ Dockerfile             │ FROM python:3.12 │
+  │               │ (FastAPI + Uvicorn)    │ + EXPOSE 8000    │
+  └───────────────┴────────────────────────┴──────────────────┘
+
+  ℹ No cache detected — app only uses PostgreSQL
+    for persistence.
+
+◐ Mapping dependencies to Approved IaC modules...
+
+  ┌───────────────┬───────────────────────────────────────────┐
+  │ Dependency    │ IaC modules                               │
+  ├───────────────┼───────────────────────────────────────────┤
+  │ PostgreSQL    │ mycompany.azurecr.io/infra/postgres:v1.2  │
+  │ Python App    │ mycompany.azurecr.io/infra/python-app:v1.0│
+  └───────────────┴───────────────────────────────────────────┘
+
+? Accept these mappings? (Y/n): Y
+
+✔ Dependencies mapped to IaC modules
+
+◐ Verifying compliance against constitution...
+
+  Checks:
+    ✔ Cloud provider: Azure                 
+    ✔ Compute: Kubernetes (AKS)             
+    ✔ IaC module: from approved catalog     
+    ✔ Module version: v1.2 matches catalog  
+    ✖ Naming: "feedback-service"            
+        Expected: mycompany-{env}-{app}-{resource}
+    ✔ Tags: environment, team, cost-center 
+
+  ℹ Verified compliance to Platform Constitution. 1 violation found.
+
+? Auto-fix the naming violation? (Y/n): Y
+
+  ✔ Renamed to mycompany-dev-feedback-service
+
+✖ 1 violation found, 1 auto-fixed
+
+◐ Generating application definition...
+
+  ┌──────────────────────────────────────────────────────────╮
+  │ Application Definition Summary                           │
+  ├──────────────────────────────────────────────────────────┤
+  │                                                          │
+  │  📦 customer-feedback-service                            │    
+  │                                                          │
+  │  ┌─────────────────────────────────────────────────────┐ │
+  │  │ 🗄  PostgreSQL Database                             │ │
+  │  │                                                     │ │
+  │  │  Name:     mycompany-dev-feedback-service-db        │ │             
+  │  │  Registry: mycompany.azurecr.io/infra/postgres      │ │
+  │  └─────────────────────────────────────────────────────┘ │
+  │         │                                                │
+  │         │ connection: DATABASE_URL (auto-injected)       │
+  │         ▼                                                │
+  │  ┌─────────────────────────────────────────────────────┐ │
+  │  │ 🐍 Python App                                       │ │
+  │  │                                                     │ │
+  │  │  Name:     mycompany-dev-feedback-service-app       │ │      
+  │  │  Image:    feedback-service:latest                  │ │
+  │  │  Port:     8000                                     │ │
+  │  └─────────────────────────────────────────────────────┘ │
+  │                                                          │
+  │  Naming: mycompany-{env}-{app}-{resource}                │
+  │  Tags:   environment, team, cost-center                  │
+  │                                                          │
+  ╰──────────────────────────────────────────────────────────╯
+
+  ℹ app.bicep generated 
+
+? Does this look correct? (Y/n): Y
+
+✔ Application definition generated
+```
+
+> **Behind the scenes:** Produces [`app.bicep`](#appendix) with explainability comments showing how each dependency was detected, which Radius type it mapped to, and which IaC module/Recipe was selected. The `connections` block wires the container to the database so Radius automatically injects the connection string. This file acts as the deployment state — the developer doesn't need to edit it directly. All these are implementation details that are hidden from the user but can be surfaced on demand for transparency and trust.
+
+>[!NOTE]
+>**Open questions**:
+>1. How does the mapping from detected dependencies to Radius Resource Types and Recipes work? 
+
+**Application Verification**
+
+```
+● skill(app-verify)
+
+◐ Running application verification...
+
+  Application Audit Report
+  ════════════════════════
+
+  Summary: 0 critical · 0 warnings · 4 info
+
+  Findings:
+    ℹ [I1] PostgreSQL module from approved catalog (§5)
+    ℹ [I2] Naming violation auto-fixed:
+           feedback-service → mycompany-dev-feedback-service
+    ℹ [I3] Explainability comments added to app.bicep
+    ℹ [I4] Connection wiring: container → db (auto)
+
+  Constitution Compliance:
+    ✔ §2 Cloud Provider     — Azure
+    ✔ §3 Compute Platform   — Kubernetes (AKS)
+    ✔ §5 Module Catalog     — postgresql-ha v1.2
+    ✔ §6 Naming Convention  — mycompany-dev-feedback-service
+    ✔ §7 Required Tags      — environment, team, cost-center
+
+  ════════════════════════
+  Result: PASS — ready to deploy
+
+? Approve and deploy? (Y/n): Y
+
+◐ Deploying to mycompany-dev environment...
+
+✔ Application deployed successfully
+
+  🌐 https://mycompany-dev-feedback-service.azurewebsites.net
 ```
 
 #### Edge Cases
 
-- No constitution found: Prompt user to create one before proceeding with assembly.
-- No dependencies detected: 
-- Unapproved module detected: Flag in audit report and require explicit approval to proceed.
+- No constitution found: Prompt developer to create one before proceeding
+- Cannot authenticate to private docs: Fall back to asking user questions to fill in the gaps in the constitution. Keep it simple.
+- No dependency detected: Allow user to manually specify what resources they need and map them to the catalog
+- Unapproved module detected: Flag in audit report and require explicit approval to proceed
+- Violations from constitution: Auto-fix if possible or require user to provide compliant name
 
-## Learnings and Areas under Exploration
+## Appendix
 
-#### 1. Scenario Clarification: Greenfield vs Brownfield
+### Example: Platform Engineering Constitution
 
-Our focus for the initial Application Assembly experience is greenfield application development, where enterprise developers are building new applications from scratch using AI coding assistants. We cater to two primary groups of developers creating new applications:
+The following is an example of the `Platform-Engineering-Constitution.md` generated for MyCompany.Inc based on the E2E journey above. The constitution is the single source of truth for organizational platform standards and is consumed by Radius skills during application assembly.
 
-- **Established developers**: Enabling experienced developers to bootstrap new applications that automatically adhere to organizational platform standards and practices.
-- **New developers**: Enabling other disciplines (analysts, designers, sales) unfamiliar with infrastructure to scaffold compliant applications from day one.
+```markdown
 
-Brownfield scenarios are still important but present challenges around discovery of the application and infrastructure needs spread across the codebase, wikis, institutional knowledge, and partially compliant deployed infrastructure. We will explore brownfield assembly in future iterations after validating the core assembly experience in greenfield contexts.
+# Platform Engineering Constitution
 
-#### 2. Deterministic Application Modeling
+## MyCompany.Inc
 
-We want to ensure there is maximum determinism in the assembly process so that developers can trust the results and understand how the application is modelled.
+---
 
-*Deterministic components*:
-- Resource type matching from `resource-types-contrib` repository
-- Recipe selection based on approved modules from platform constitution or from `resource-types-contrib` repository
-- CLI or API calls to use Radius capabilities (`rad resource-type show` or `rad resource-type list`)
+## 1. Organization Overview
 
-That being said, there are certain aspects of the assembly process that may require LLM inference beyond deterministic rules, especially when it comes to understanding the dependencies and matching them to the correct resource types and recipes. For example, if a dependency is detected but does not have a clear mapping to a resource type or a recipe, we could use an LLM to suggest potential matches based on the dependency's characteristics and usage patterns.
+- **Company**: MyCompany.Inc
+- **Platform Team**: Cloud Infrastructure & Developer Experience
+- **Last Updated**: 2026-03-05
+- **Source**: https://mycompany.inc/wiki/platform-guide
 
-#### 3. Skills Installation and Distribution
+---
 
-We are building the assembly capabilities as composable skills that can be invoked via AI coding agent or CLI. We need to determine the best way to distribute these skills to users and ensure they are easily discoverable and updatable. Copilot supports project skills stored within `.github/skills` folder and personal skills stored in agent folders `.copilot/skills`.
+## 2. Cloud Providers
 
-In Copilot CLI, a user could add Radius skills using the below command:
+| Provider | Status   | Regions                    |
+|----------|----------|----------------------------|
+| Azure    | Approved | East US, West US, West EU  |
 
+---
+
+## 3. Compute Platform
+
+| Platform   | Version | Status   |
+|------------|---------|----------|
+| Kubernetes | 1.30    | Approved |
+
+- **Managed Service**: Azure Kubernetes Service (AKS)
+- **Node Pools**: System (Standard_D4s_v5), User (Standard_D8s_v5)
+
+---
+
+## 4. Infrastructure as Code
+
+| Tool      | Version | Status   |
+|-----------|---------|----------|
+| Terraform | >= 1.6  | Approved |
+
+- **State Backend**: Azure Storage Account
+- **Module Registry**: mycompany.azurecr.io
+
+---
+
+## 5. Approved Module Catalog
+
+All infrastructure must be provisioned using approved modules from the
+organization's private registry. Modules not in this catalog require
+platform team approval before use.
+
+| Module               | Version | Registry Path                              |
+|----------------------|---------|--------------------------------------------|
+| postgresql-ha        | v1.2    | mycompany.azurecr.io/infra/postgres        |
+| redis-cluster        | v2.0    | mycompany.azurecr.io/infra/redis           |
+| mysql-ha             | v1.1    | mycompany.azurecr.io/infra/mysql           |
+| mongodb-replica      | v1.0    | mycompany.azurecr.io/infra/mongodb         |
+| rabbitmq-cluster     | v1.3    | mycompany.azurecr.io/infra/rabbitmq        |
+| kafka-cluster        | v2.1    | mycompany.azurecr.io/infra/kafka           |
+| python-app           | v1.0    | mycompany.azurecr.io/infra/python-app      |
+| node-app             | v1.1    | mycompany.azurecr.io/infra/node-app        |
+| go-app               | v1.0    | mycompany.azurecr.io/infra/go-app          |
+| storage-account      | v1.4    | mycompany.azurecr.io/infra/storage         |
+| key-vault            | v1.2    | mycompany.azurecr.io/infra/keyvault        |
+| service-bus          | v1.0    | mycompany.azurecr.io/infra/servicebus      |
+| container-registry   | v1.1    | mycompany.azurecr.io/infra/acr             |
+| dns-zone             | v1.0    | mycompany.azurecr.io/infra/dns             |
+
+---
+
+## 6. Naming Convention
+
+**Pattern**: `{company}-{env}-{app}-{resource}`
+
+| Segment      | Description                          | Example            |
+|--------------|--------------------------------------|--------------------|
+| `{company}`  | Organization prefix                  | mycompany          |
+| `{env}`      | Deployment environment               | dev, staging, prod |
+| `{app}`      | Application name (kebab-case)        | feedback-service   |
+| `{resource}` | Resource type suffix                 | db, app, cache     |
+
+**Example**: `mycompany-dev-feedback-service-db`
+
+---
+
+## 7. Required Tags
+
+All cloud resources must include the following tags:
+
+| Tag            | Description                        | Example              |
+|----------------|------------------------------------|----------------------|
+| `environment`  | Deployment environment             | dev, staging, prod   |
+| `team`         | Owning team                        | platform, backend    |
+| `cost-center`  | Billing cost center                | CC-1234              |
 ```
-/skills add radius-project/radius-skills
+
+### Example: Generated `app.bicep`
+
+The following is an example of the `app.bicep` generated by the `app-modeling` skill for Maria's customer feedback service. This file acts as the deployment state file — auto-generated with explainability comments tracing each decision back to its source.
+
+```bicep
+import radius as radius
+
+@description('The Radius environment ID for deployment')
+param environment string
+
+@description('The Radius application ID')
+param application string
+
+resource db 'Radius.Datas/postgreSqlDatabases@2025-08-01-preview' = {
+  name: 'mycompany-dev-feedback-service-db'
+  properties: {
+    environment: environment
+    application: application
+  }
+}
+
+resource app 'Radius.Compute/containers@2025-08-01-preview' = {
+  name: 'mycompany-dev-feedback-service-app'
+  properties: {
+    environment: environment
+    application: application
+    container: {
+      image: 'feedback-service:latest'
+      ports: {
+        http: {
+          containerPort: 8000
+          protocol: 'TCP'
+        }
+      }
+    }
+    connections: {
+      database: {
+        source: db.id
+      }
+    }
+  }
+}
 ```
-
-Other options for distribution include:
-| Method | Description|
-|--------|------|------
-| `skills.sh` script | A simple scripts that copies the necessary skills from the centralized Radius repository to the user's `.github/skills` folder.
-| `rad cli` | Integrated experience within the Radius CLI |
-| GitHub's recommended way | This could be an option that GitHub provides in the future for sharing skills across users and organizations. |
-
-#### 4. `app.bicep` as State file (Hidden from User)
-
-We want to position the generated `app.bicep` as an implementation detail and source of truth that users don't need to interact with directly. The generated `app.bicep` can function similarly to Terraform state file which can be iterated by Radius before finalizing it for deployment.
-
-This state file will be modified at various stages of the assembly and deployment process, for example:
-
-- During application modeling, `app.bicep` is generated based on the inferred application topology and platform mapping
-- During user review, any changes made by the user to the inferred topology or platform mapping will be reflected in the `app.bicep`
-- During platform compliance checks, any adjustments needed to meet organizational policies can be made in the `app.bicep` before final deployment.
