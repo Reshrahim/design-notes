@@ -118,11 +118,9 @@ A developer has an existing application that was built in a non-compliant manner
 Maria installs Radius skills in her repository based on the instructions provided by the platform team so that she can build compliant applications from day one.
 
 ```
-❯ npx add skills https://github.com/radius-project/skills.git
+❯ npx add radius-skills 
 
 ● Add skills from radius-project/skills repo
-  $ cd /customer-feedback-service && npx skills add https://github.com/anthropics/skills.git
-  └ 10 lines...
 
 ● The repo cloned successfully and found 3 skills. It's waiting for you to select which skills to install. Which skills would you like? You can choose from categories like:
 
@@ -130,24 +128,18 @@ Maria installs Radius skills in her repository based on the instructions provide
    - Application Modelling – Automatically scaffold a compliant application definition based on the developer's intent and platform constitution.
    - Application Verification – Check the compliance of an application definition against the platform constitution and certify the application for deploymnent
 
-  Would you like me to select all of them, or specific ones?
+● Configured Radius MCP server in .github/skills/mcp-server.js 
 
-❯ all
-
-● Install all skills with --yes flag
-  $ cd /customer-feedback-service && npx skills add https://github.com/anthropics/skills.git --yes
-  └ 10 lines...
-
-● All 3 skills installed successfully to .github/skills/ in your project. They're available across multiple agents (Codex, GitHub Copilot, Claude Code, Cursor, and more). You can use /skills list or /skills reload in the CLI to start using them.
+● All 3 skills installed successfully to .github/skills/ in your project. MCP server will start automatically when coding agent is launched.
 ```
 
 >[!NOTE]
-> **Open-question**: Can we combine the skills and MCP server installation as a package that developers can install with a single command, for example `npx add radius-skills` which would install the necessary skills and also set up the MCP server.
+> The Radius skills and the MCP server are packaged together and available as a single installation. We can also add it to other package managers like pip, brew, etc or via rad CLI as well.
 
 #### Building the application source code with Copilot
 
 >[!IMPORTANT]
-> Copilot builds the application source code based on Maria's input. There is no Radius skills involvement until this step and is left to the user to guide copilot in building the app as they normally would.
+> Copilot builds the application source code based on Maria's input. There is no Radius skills involvement in this step and is left to the user to guide copilot in building the app as they normally would.
 
 Now Maria is ready to build the customer feedback service application.
 
@@ -201,8 +193,11 @@ feedback-service/ — Python/FastAPI + PostgreSQL with full CRUD:
 
 **Platform Constitution Generation**
 
-```
+This step is independent of the Radius application assembly layer. The Platform Constitution serves as an input to application assembly but can also be consumed by other tools outside Radius.
 
+In the developer flow, the `platform-constitution` skill produces a lightweight constitution sufficient for application modeling. A more robust platform constitution experience can be provided later on after we have more feedback from the users.
+
+```
 > build and deploy the application
 
 ◐ No Platform-Engineering-Constitution.md found.
@@ -328,15 +323,13 @@ feedback-service/ — Python/FastAPI + PostgreSQL with full CRUD:
 
 An example of the generated `Platform-Engineering-Constitution.md` is included in the Appendix section below.
 
-The same flow can be invoked by platform engineers to generate the constitution as well. The key difference is that platform engineers would likely have more complete documentation and clearer standards which would make the generation more deterministic and require less back and forth with the user.
-
 >[!NOTE]
-> **Open Questions** 
+> **Open Questions**
 > 1. Can a tool be added to the MCP server to authenticate to private docs which allows Copilot to crawl and fetch the platform data?
 > 2. What are the authentication mechanisms we can support for private docs? (e.g., OAuth, PAT, SSO)
 > 3. If we cannot authenticate and fetch the docs, we will need to fall back to asking users questions to fill in the gaps in the constitution. How can we keep this experience simple and not overwhelming for users?
 > 4. How would a Platform engineer distribute this constitution to the teams?
-> 5. How do we keep the constitution up to date as organizational standards evolve? 
+> 5. How do we keep the constitution up to date as organizational standards evolve?
 
 **Application Architecture**
 
@@ -449,11 +442,15 @@ The same flow can be invoked by platform engineers to generate the constitution 
 ✔ Application definition generated
 ```
 
-> **Behind the scenes:** Produces [`app.bicep`](#appendix) with explainability comments showing how each dependency was detected, which Radius type it mapped to, and which IaC module/Recipe was selected. The `connections` block wires the container to the database so Radius automatically injects the connection string. This file acts as the deployment state — the developer doesn't need to edit it directly. All these are implementation details that are hidden from the user but can be surfaced on demand for transparency and trust.
+> **Behind the scenes:** The following is done in the background
+> 1. The `app-modeling` skill detects dependencies. It looks for common patterns like database connection strings, ORM libraries, Docker base images, and exposed ports to infer what resources the app needs.
+> 2. Matches to the Radius Resource types and approved modules in the catalog for Recipes that can provision those resources. It checks the constitution for any specific requirements around those resources and applies the practices to Recipes.
+> 3. Produces [`app.bicep`](#appendix) with explainability comments showing how each dependency was detected, which Radius type it mapped to, and which IaC module/Recipe was selected. The `connections` block wires the container to the database, so Radius automatically injects the connection string. This file acts as the deployment state that the developer doesn't need to edit it directly. All these are implementation details that are hidden from the user but can be surfaced on demand for transparency and trust.
 
 >[!NOTE]
 >**Open questions**:
->1. How does the mapping from detected dependencies to Radius Resource Types and Recipes work? 
+>1. How do we handle mapping Resource type and Recipes and where do we store this mapping?
+>1. How do we handle updates to the application definition? How do we ensure that changes don't break compliance?
 
 **Application Verification**
 
@@ -492,6 +489,10 @@ The same flow can be invoked by platform engineers to generate the constitution 
 
   🌐 https://mycompany-dev-feedback-service.azurewebsites.net
 ```
+
+>[!NOTE]
+>**Open questions**:
+>1. Two stages of verification should happen: 1) Application is compliant against the platform constitution and 2) Application is deployable in the target environment. 2 is dependent on Repo Radius workflow on how Radius is setup and environment is configured.
 
 #### Edge Cases
 
@@ -569,8 +570,6 @@ platform team approval before use.
 | rabbitmq-cluster     | v1.3    | mycompany.azurecr.io/infra/rabbitmq        |
 | kafka-cluster        | v2.1    | mycompany.azurecr.io/infra/kafka           |
 | python-app           | v1.0    | mycompany.azurecr.io/infra/python-app      |
-| node-app             | v1.1    | mycompany.azurecr.io/infra/node-app        |
-| go-app               | v1.0    | mycompany.azurecr.io/infra/go-app          |
 | storage-account      | v1.4    | mycompany.azurecr.io/infra/storage         |
 | key-vault            | v1.2    | mycompany.azurecr.io/infra/keyvault        |
 | service-bus          | v1.0    | mycompany.azurecr.io/infra/servicebus      |
@@ -607,7 +606,7 @@ All cloud resources must include the following tags:
 
 ### Example: Generated `app.bicep`
 
-The following is an example of the `app.bicep` generated by the `app-modeling` skill for Maria's customer feedback service. This file acts as the deployment state file — auto-generated with explainability comments tracing each decision back to its source.
+The following is an example of the `app.bicep` generated by the `app-modeling` skill for Maria's customer feedback service.
 
 ```bicep
 import radius as radius
