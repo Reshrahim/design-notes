@@ -443,7 +443,7 @@ An example of the generated `Platform-Engineering-Constitution.md` is included i
 > **Behind the scenes:** The following is done in the background
 > 1. The `app-modeling` skill detects dependencies. It looks for common patterns like database connection strings, ORM libraries, Docker base images, and exposed ports to infer what resources the app needs.
 > 2. Matches to the Radius Resource types and approved modules in the catalog for Recipes that can provision those resources. It checks the constitution for any specific requirements around those resources and applies the practices to Recipes.
-> 3. Produces [`app.bicep`](#appendix) with explainability comments showing how each dependency was detected, which Radius type it mapped to, and which IaC module/Recipe was selected. The `connections` block wires the container to the database, so Radius automatically injects the connection string. This file acts as the deployment state that the developer doesn't need to edit it directly. All these are implementation details that are hidden from the user but can be surfaced on demand for transparency and trust.
+> 3. Produces [`app.bicep`](#appendix). The `connections` block wires the container to the database, so Radius automatically injects the connection string. This file acts as the deployment state that the developer doesn't need to edit it directly.
 
 >**Open questions**:
 >1. How do we handle mapping Resource type and Recipes and where do we store this mapping?
