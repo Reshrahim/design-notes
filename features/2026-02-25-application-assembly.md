@@ -219,7 +219,6 @@ In the developer flow, the `platform-constitution` skill produces a lightweight 
 ╰──────────────────────────────────────────────────────────╯
 ```
 
-> [!NOTE]
 > **Open Question**: Copilot generated source code has docker-compose.yml. How much of a support is required for local dev and testing for enterprise developers? Should Radius skills jump to generating the `app.bicep` and let users run it in the cloud instead of running locally with docker-compose?
 
 ```
@@ -323,7 +322,6 @@ In the developer flow, the `platform-constitution` skill produces a lightweight 
 
 An example of the generated `Platform-Engineering-Constitution.md` is included in the Appendix section below.
 
->[!NOTE]
 > **Open Questions**
 > 1. Can a tool be added to the MCP server to authenticate to private docs which allows Copilot to crawl and fetch the platform data?
 > 2. What are the authentication mechanisms we can support for private docs? (e.g., OAuth, PAT, SSO)
@@ -447,7 +445,6 @@ An example of the generated `Platform-Engineering-Constitution.md` is included i
 > 2. Matches to the Radius Resource types and approved modules in the catalog for Recipes that can provision those resources. It checks the constitution for any specific requirements around those resources and applies the practices to Recipes.
 > 3. Produces [`app.bicep`](#appendix) with explainability comments showing how each dependency was detected, which Radius type it mapped to, and which IaC module/Recipe was selected. The `connections` block wires the container to the database, so Radius automatically injects the connection string. This file acts as the deployment state that the developer doesn't need to edit it directly. All these are implementation details that are hidden from the user but can be surfaced on demand for transparency and trust.
 
->[!NOTE]
 >**Open questions**:
 >1. How do we handle mapping Resource type and Recipes and where do we store this mapping?
 >1. How do we handle updates to the application definition? How do we ensure that changes don't break compliance?
@@ -490,7 +487,6 @@ An example of the generated `Platform-Engineering-Constitution.md` is included i
   🌐 https://mycompany-dev-feedback-service.azurewebsites.net
 ```
 
->[!NOTE]
 >**Open questions**:
 >1. Two stages of verification should happen: 1) Application is compliant against the platform constitution and 2) Application is deployable in the target environment. 2 is dependent on Repo Radius workflow on how Radius is setup and environment is configured.
 
